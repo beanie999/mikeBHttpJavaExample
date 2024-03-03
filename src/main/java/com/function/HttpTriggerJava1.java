@@ -60,7 +60,6 @@ public class HttpTriggerJava1 {
         String query = request.getQueryParameters().get("name");
         String name = request.getBody().orElse(query);
 
-        //NewRelic.setRequestAndResponse(null, null);
         if (name == null) {
             context.getLogger().warning("No name supplied!");
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Please pass a name on the query string or in the request body").build();
