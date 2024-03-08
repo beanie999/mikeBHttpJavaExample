@@ -11,6 +11,7 @@ dependencies {
     implementation 'com.microsoft.azure.functions:azure-functions-java-library:2.0.1'
     implementation 'com.newrelic.agent.java:newrelic-agent:8.9.1'
     implementation 'com.newrelic.agent.java:newrelic-api:8.9.1'
+    implementation 'com.azure:azure-messaging-servicebus:7.15.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
     testImplementation 'org.mockito:mockito-core:3.3.3'
 }
@@ -24,14 +25,36 @@ repositories {
     mavenCentral()
 }
 
+/** Copies newrelic.yml file to lib folder */
+tasks.register('copyNewRelicYML', Copy) {
+    println("Copying newrelic.yml!!!")
+    from(layout.buildDirectory.dir(".."))
+    include("newrelic.yml")
+    into(layout.buildDirectory.dir("azure-functions/mikeBHttpJavaExample-1709210720124/lib"))
+}
+
+/** Copies new-relic-custom.xml file to extensions folder */
+tasks.register('copyNewRelicXML', Copy) {
+    println("Copying new-relic-custom.xml!!!")
+    from(layout.buildDirectory.dir(".."))
+    include("new-relic-custom.xml")
+    into(layout.buildDirectory.dir("azure-functions/mikeBHttpJavaExample-1709210720124/extensions"))
+}
+
+task prepareDirs {
+    project.file('extensions').mkdirs()
+}
+
 azurefunctions {
     resourceGroup = 'java-functions-group'
     appName = 'mikeBHttpJavaExample-1709210720124'
     pricingTier = 'Consumption'
     region = 'westus'
     runtime {
-      os = 'windows'
+      os = 'linux'
       javaVersion = '17'
     }
     localDebug = "transport=dt_socket,server=y,suspend=n,address=5005"
 }
+
+tasks.named("azureFunctionsPackage") { finalizedBy("prepareDirs", "copyNewRelicYML", "copyNewRelicXML") }
